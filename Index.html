@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NebuRide — Planet Nebulon 2125</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;900&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060b16;--surface:#0d1626;--card:#111d35;--card2:#162240;
+  --teal:#00d4c8;--teal2:#00a89f;--green:#7dc41a;--green2:#5a9012;
+  --amber:#f5a623;--red:#e84040;--white:#f0f4ff;--muted:#6b80a8;
+  --border:rgba(0,212,200,0.15);--glow:rgba(0,212,200,0.3);
+}
+html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Exo 2',sans-serif;overflow:hidden}
+
+/* ── Stars background ── */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) var(--delay,0s) infinite}
+@keyframes twinkle{0%,100%{opacity:0.2}50%{opacity:var(--op,0.8)}}
+
+/* ── App wrapper ── */
+#app{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+
+/* ── Phone frame ── */
+.phone{
+  width:390px;height:820px;
+  background:var(--surface);
+  border-radius:44px;
+  border:2px solid rgba(0,212,200,0.25);
+  box-shadow:0 0 60px rgba(0,212,200,0.12),0 0 120px rgba(0,212,200,0.06),inset 0 0 40px rgba(0,0,0,0.5);
+  overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+}
+.phone::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:120px;height:30px;background:var(--bg);border-radius:0 0 20px 20px;z-index:100;
+}
+
+/* ── Screens ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.35s,transform 0.35s}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.screen.slide-out{transform:translateX(-30px)}
+
+/* ── Language select screen ── */
+#lang-screen{
+  background:radial-gradient(ellipse at 50% 30%,#0d2040 0%,#060b16 70%);
+  align-items:center;justify-content:center;gap:0;padding:40px 30px;
+}
+.planet{
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#1a4a8a,#0a2050 50%,#050f25);
+  box-shadow:0 0 40px rgba(0,100,255,0.4),inset -15px -10px 30px rgba(0,0,0,0.5);
+  position:relative;margin-bottom:8px;animation:float 6s ease-in-out infinite;
+}
+.planet::after{
+  content:'';position:absolute;inset:-20px;border-radius:50%;
+  border:2px solid rgba(0,212,200,0.2);transform:rotate(-20deg) scaleX(2.2);
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.app-logo{font-size:36px;font-weight:900;letter-spacing:-1px;margin-bottom:4px;
+  background:linear-gradient(135deg,#00d4c8,#7dc41a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.app-subtitle{font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px}
+.lang-label{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.lang-btns{display:flex;flex-direction:column;gap:12px;width:100%}
+.lang-btn{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;border-radius:16px;
+  background:var(--card);border:1.5px solid var(--border);
+  cursor:pointer;transition:all 0.2s;
+}
+.lang-btn:hover{background:var(--card2);border-color:var(--teal);box-shadow:0 0 20px var(--glow)}
+.lang-btn .flag{font-size:24px;line-height:1}
+.lang-btn .lang-name{font-size:16px;font-weight:600}
+.lang-btn .lang-native{font-size:13px;color:var(--muted);margin-top:1px}
+.lang-btn .arrow{margin-left:auto;color:var(--teal);font-size:18px}
+
+/* ── Status bar ── */
+.status-bar{
+  padding:36px 24px 8px;display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--muted);flex-shrink:0;
+}
+.status-time{font-size:14px;font-weight:600;color:var(--white)}
+.status-icons{display:flex;gap:6px;align-items:center}
+.sig-dot{width:3px;height:10px;background:var(--teal);border-radius:1px}
+.sig-dot:nth-child(2){height:7px;opacity:.7}
+.sig-dot:nth-child(3){height:5px;opacity:.4}
+
+/* ── Top bar ── */
+.top-bar{
+  padding:4px 24px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.top-bar h2{font-size:20px;font-weight:700}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--green));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+}
+.lang-switch{
+  display:flex;gap:6px;align-items:center;
+  background:var(--card);padding:5px 10px;border-radius:20px;
+  border:1px solid var(--border);cursor:pointer;font-size:11px;color:var(--teal);
+  transition:all 0.2s;
+}
+.lang-switch:hover{background:var(--card2)}
+
+/* ── Scrollable content ── */
+.scroll-area{flex:1;overflow-y:auto;padding:0 20px 80px;scroll-behavior:smooth}
+.scroll-area::-webkit-scrollbar{width:3px}
+.scroll-area::-webkit-scrollbar-thumb{background:var(--teal2);border-radius:2px}
+
+/* ── Alert banner ── */
+.alert-banner{
+  background:linear-gradient(135deg,rgba(232,64,64,0.2),rgba(232,64,64,0.08));
+  border:1px solid rgba(232,64,64,0.4);border-radius:14px;padding:12px 14px;
+  margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;
+}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,64,64,0.6)}70%{box-shadow:0 0 0 8px rgba(232,64,64,0)}}
+.alert-title{font-size:12px;font-weight:700;color:var(--red);letter-spacing:.5px}
+.alert-text{font-size:11px;color:#e08080;margin-top:2px;line-height:1.4}
+
+/* ── Greeting ── */
+.greeting-box{margin-bottom:18px}
+.greeting-time{font-size:11px;color:var(--teal);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.greeting-text{font-size:22px;font-weight:700;line-height:1.3}
+.greeting-sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* ── Quick actions ── */
+.section-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.qa-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:16px;cursor:pointer;transition:all 0.2s;
+}
+.qa-card:hover{background:var(--card2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.qa-icon{font-size:26px;margin-bottom:8px}
+.qa-title{font-size:13px;font-weight:600}
+.qa-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.qa-card.highlight{background:linear-gradient(135deg,rgba(0,212,200,0.12),rgba(125,196,26,0.08));border-color:rgba(0,212,200,0.35)}
+
+/* ── Journey card ── */
+.journey-card{
+  background:linear-gradient(135deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:16px;
+  cursor:pointer;transition:all 0.2s;
+}
+.journey-card:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.4);border-color:var(--teal)}
+.journey-route{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.route-dot{width:10px;height:10px;border-radius:50%;background:var(--teal);flex-shrink:0}
+.route-line{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--teal) 0,var(--teal) 4px,transparent 4px,transparent 8px)}
+.route-dot.end{background:var(--green)}
+.route-names{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+.journey-meta{display:flex;gap:12px}
+.meta-pill{background:rgba(0,212,200,0.1);border:1px solid rgba(0,212,200,0.2);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--teal)}
+.meta-pill.green{background:rgba(125,196,26,0.1);border-color:rgba(125,196,26,0.2);color:var(--green)}
+.meta-pill.amber{background:rgba(245,166,35,0.1);border-color:rgba(245,166,35,0.2);color:var(--amber)}
+
+/* ── Book screen ── */
+.book-header{padding:0 24px 16px;flex-shrink:0}
+.back-btn{
+  display:flex;align-items:center;gap:8px;font-size:14px;color:var(--teal);
+  cursor:pointer;padding:8px 0;margin-bottom:4px;
+}
+.book-title{font-size:22px;font-weight:700}
+.input-group{margin-bottom:14px}
+.input-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.input-field{
+  width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  padding:13px 16px;color:var(--white);font-size:14px;font-family:inherit;
+  transition:border-color 0.2s;outline:none;
+}
+.input-field:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,200,0.1)}
+.route-selector{
+  display:flex;flex-direction:column;gap:0;background:var(--card);border:1.5px solid var(--border);
+  border-radius:14px;overflow:hidden;margin-bottom:14px;
+}
+.route-from,.route-to{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background 0.2s;
+}
+.route-from:hover,.route-to:hover{background:var(--card2)}
+.route-from{border-bottom:1px solid var(--border)}
+.route-dot-sm{width:10px;height:10px;border-radius:50%;background:var(--teal);flex-shrink:0}
+.route-dot-sm.end{background:var(--green)}
+.route-swap{
+  position:absolute;right:16px;background:var(--card2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px;
+}
+.route-wrapper{position:relative}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.cultural-card{
+  background:linear-gradient(135deg,rgba(245,166,35,0.1),rgba(245,166,35,0.04));
+  border:1px solid rgba(245,166,35,0.25);border-radius:14px;padding:14px;margin-bottom:14px;
+}
+.cultural-title{font-size:12px;font-weight:700;color:var(--amber);margin-bottom:8px}
+.cultural-item{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.cultural-item span:first-child{color:var(--muted)}
+.cultural-item span:last-child{color:var(--white);font-weight:500}
+.book-btn{
+  width:100%;padding:16px;border-radius:16px;border:none;cursor:pointer;font-family:inherit;
+  font-size:16px;font-weight:700;
+  background:linear-gradient(135deg,var(--teal),var(--green));
+  color:#060b16;letter-spacing:.5px;transition:all 0.2s;
+}
+.book-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,200,0.4)}
+.book-btn:active{transform:translateY(0)}
+
+/* ── AI screen ── */
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.chat-messages::-webkit-scrollbar{width:2px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--teal2)}
+.msg{display:flex;flex-direction:column;gap:4px}
+.msg.user{align-items:flex-end}
+.msg.bot{align-items:flex-start}
+.bubble{
+  max-width:82%;padding:12px 14px;border-radius:16px;font-size:13px;line-height:1.5;
+}
+.msg.bot .bubble{background:var(--card2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.user .bubble{background:linear-gradient(135deg,var(--teal2),var(--green2));color:#fff;border-bottom-right-radius:4px}
+.msg-time{font-size:10px;color:var(--muted);padding:0 4px}
+.ai-badge{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--teal);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite}
+.chat-input-row{
+  padding:12px 16px 24px;display:flex;gap:8px;align-items:center;flex-shrink:0;
+  background:linear-gradient(to top,var(--surface),transparent);
+}
+.chat-input{
+  flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:24px;
+  padding:11px 16px;color:var(--white);font-family:inherit;font-size:13px;outline:none;
+  transition:border-color 0.2s;
+}
+.chat-input:focus{border-color:var(--teal)}
+.send-btn{
+  width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--green));
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;
+  color:#060b16;flex-shrink:0;transition:all 0.2s;
+}
+.send-btn:hover{transform:scale(1.08)}
+.quick-qs{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
+.quick-q{
+  background:var(--card2);border:1px solid var(--border);border-radius:20px;
+  padding:6px 12px;font-size:11px;color:var(--teal);cursor:pointer;transition:all 0.2s;
+}
+.quick-q:hover{background:rgba(0,212,200,0.15);border-color:var(--teal)}
+
+/* ── Community screen ── */
+.ride-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;
+  margin-bottom:10px;cursor:pointer;transition:all 0.2s;
+}
+.ride-card:hover{background:var(--card2);border-color:var(--teal)}
+.ride-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.ride-route{font-size:14px;font-weight:600}
+.ride-badge{
+  font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;
+  background:rgba(125,196,26,0.15);color:var(--green);border:1px solid rgba(125,196,26,0.3)
+}
+.ride-badge.full{background:rgba(232,64,64,0.15);color:var(--red);border-color:rgba(232,64,64,0.3)}
+.ride-meta{display:flex;gap:10px;flex-wrap:wrap}
+.ride-tag{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.avatars{display:flex}
+.av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--green2));border:2px solid var(--surface);margin-left:-6px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#060b16}
+.av:first-child{margin-left:0}
+
+/* ── Profile / SOS screen ── */
+.sos-btn{
+  width:100%;padding:18px;border-radius:18px;border:2px solid var(--red);
+  background:rgba(232,64,64,0.1);color:var(--red);font-family:inherit;
+  font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;
+  transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.sos-btn:hover{background:rgba(232,64,64,0.25);box-shadow:0 0 30px rgba(232,64,64,0.3)}
+.profile-section{margin-bottom:18px}
+.profile-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:13px 16px;background:var(--card);border-radius:12px;margin-bottom:6px;
+  cursor:pointer;transition:background 0.2s;font-size:13px;
+}
+.profile-row:hover{background:var(--card2)}
+.profile-row span:last-child{color:var(--muted);font-size:12px}
+.toggle{
+  width:40px;height:22px;background:var(--teal);border-radius:11px;position:relative;cursor:pointer;
+}
+.toggle::after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:right 0.2s}
+.toggle.off{background:var(--card2)}
+.toggle.off::after{right:auto;left:3px}
+
+/* ── Bottom nav ── */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,var(--surface) 80%,transparent);
+  padding:10px 10px 24px;display:flex;justify-content:space-around;
+  border-top:1px solid var(--border);backdrop-filter:blur(10px);
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+  padding:6px 12px;border-radius:14px;transition:all 0.2s;
+}
+.nav-item:hover{background:rgba(0,212,200,0.08)}
+.nav-item.active{background:rgba(0,212,200,0.1)}
+.nav-icon{font-size:20px}
+.nav-label{font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.nav-item.active .nav-label{color:var(--teal)}
+
+/* ── Booking confirm modal ── */
+.modal-overlay{
+  position:absolute;inset:0;background:rgba(6,11,22,0.85);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:50;
+}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal-sheet{
+  width:100%;background:var(--card2);border-radius:24px 24px 0 0;padding:24px;
+  transform:translateY(100%);transition:transform 0.35s cubic-bezier(.32,.72,0,1);
+  border-top:1px solid var(--border);
+}
+.modal-overlay.show .modal-sheet{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--muted);border-radius:2px;margin:0 auto 20px}
+.confirm-route{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.confirm-stop{flex:1}
+.confirm-stop-name{font-size:16px;font-weight:700}
+.confirm-stop-label{font-size:11px;color:var(--muted)}
+.confirm-arrow{font-size:20px;color:var(--teal)}
+.confirm-details{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+.confirm-detail{background:var(--card);border-radius:10px;padding:10px;text-align:center}
+.confirm-detail .val{font-size:16px;font-weight:700;color:var(--teal)}
+.confirm-detail .key{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── Notification toast ── */
+.toast{
+  position:absolute;top:50px;left:20px;right:20px;
+  background:linear-gradient(135deg,var(--card2),var(--card));
+  border:1px solid var(--teal);border-radius:14px;padding:14px;z-index:200;
+  transform:translateY(-20px);opacity:0;transition:all 0.3s;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-title{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:3px}
+.toast-text{font-size:11px;color:var(--muted)}
+
+/* ── RTL support ── */
+[dir="rtl"] .alert-banner,[dir="rtl"] .quick-actions,[dir="rtl"] .journey-route{direction:rtl}
+[dir="rtl"] .chat-messages .msg.user{align-items:flex-start}
+[dir="rtl"] .chat-messages .msg.bot{align-items:flex-end}
+[dir="rtl"] .back-btn{flex-direction:row-reverse}
+[dir="rtl"] .route-from,[dir="rtl"] .route-to{flex-direction:row-reverse}
+[dir="rtl"] body{font-family:'Noto Sans Arabic',sans-serif}
+[dir="ltr"] .hi body,[dir="ltr"].hi body{font-family:'Noto Sans Devanagari',sans-serif}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.4s ease both}
+.fade-up-1{animation-delay:0.05s}.fade-up-2{animation-delay:0.1s}.fade-up-3{animation-delay:0.15s}.fade-up-4{animation-delay:0.2s}.fade-up-5{animation-delay:0.25s}
+
+/* ── Responsive scale ── */
+@media(max-height:860px){.phone{height:calc(100vh - 40px)}}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div id="app">
+<div class="phone" id="phone">
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 0 — Language Select
+  ═══════════════════════════════════════════ -->
+  <div class="screen active" id="lang-screen">
+    <div class="planet"></div>
+    <div class="app-logo">NebuRide</div>
+    <div class="app-subtitle">Planet Nebulon · 2125</div>
+    <div class="lang-label">Choose your language / अपनी भाषा चुनें / اختر لغتك</div>
+    <div class="lang-btns">
+      <div class="lang-btn fade-up fade-up-1" onclick="setLang('en')">
+        <span class="flag">🇬🇧</span>
+        <div><div class="lang-name">English</div><div class="lang-native">Continue in English</div></div>
+        <span class="arrow">›</span>
+      </div>
+      <div class="lang-btn fade-up fade-up-2" onclick="setLang('hi')">
+        <span class="flag">🇮🇳</span>
+        <div><div class="lang-name" style="font-family:'Noto Sans Devanagari',sans-serif">हिंदी</div><div class="lang-native" style="font-family:'Noto Sans Devanagari',sans-serif;font-size:12px">हिंदी में जारी रखें</div></div>
+        <span class="arrow">›</span>
+      </div>
+      <div class="lang-btn fade-up fade-up-3" onclick="setLang('ar')">
+        <span class="flag">🇸🇦</span>
+        <div><div class="lang-name" style="font-family:'Noto Sans Arabic',sans-serif">العربية</div><div class="lang-native" style="font-family:'Noto Sans Arabic',sans-serif;font-size:12px">تابع بالعربية</div></div>
+        <span class="arrow">‹</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 1 — Home
+  ═══════════════════════════════════════════ -->
+  <div class="screen" id="home-screen">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <div class="sig-dot"></div><div class="sig-dot"></div><div class="sig-dot"></div>
+        <span style="font-size:12px;margin-left:4px">⚡</span>
+      </div>
+    </div>
+    <div class="top-bar">
+      <div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:.5px" id="h-greeting-time"></div>
+        <h2 id="h-user-name"></h2>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="lang-switch" onclick="goLangSelect()"><span id="h-flag"></span> <span id="h-lang-code"></span></div>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+    <div class="scroll-area">
+      <div class="alert-banner fade-up">
+        <div class="alert-dot"></div>
+        <div>
+          <div class="alert-title" id="h-alert-title"></div>
+          <div class="alert-text" id="h-alert-text"></div>
+        </div>
+      </div>
+      <div class="greeting-box fade-up fade-up-1">
+        <div class="greeting-time" id="h-time-label"></div>
+        <div class="greeting-text" id="h-greeting"></div>
+        <div class="greeting-sub" id="h-sub"></div>
+      </div>
+      <div class="section-label fade-up fade-up-2" id="h-quick-label"></div>
+      <div class="quick-actions fade-up fade-up-2">
+        <div class="qa-card highlight" onclick="goScreen('book-screen')">
+          <div class="qa-icon">🚄</div>
+          <div class="qa-title" id="qa-book"></div>
+          <div class="qa-sub" id="qa-book-sub"></div>
+        </div>
+        <div class="qa-card" onclick="goScreen('ai-screen')">
+          <div class="qa-icon">🤖</div>
+          <div class="qa-title" id="qa-ai"></div>
+          <div class="qa-sub" id="qa-ai-sub"></div>
+        </div>
+        <div class="qa-card" onclick="goScreen('community-screen')">
+          <div class="qa-icon">👥</div>
+          <div class="qa-title" id="qa-comm"></div>
+          <div class="qa-sub" id="qa-comm-sub"></div>
+        </div>
+        <div class="qa-card" onclick="goScreen('profile-screen')">
+          <div class="qa-icon">🆘</div>
+          <div class="qa-title" id="qa-sos"></div>
+          <div class="qa-sub" id="qa-sos-sub"></div>
+        </div>
+      </div>
+      <div class="section-label fade-up fade-up-3" id="h-routes-label"></div>
+      <div id="route-cards"></div>
+    </div>
+    <div class="bottom-nav" id="home-nav"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 2 — Book Trip
+  ═══════════════════════════════════════════ -->
+  <div class="screen" id="book-screen">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><div class="sig-dot"></div><div class="sig-dot"></div><div class="sig-dot"></div></div></div>
+    <div class="book-header">
+      <div class="back-btn" onclick="goHome()">‹ <span id="b-back"></span></div>
+      <div class="book-title" id="b-title"></div>
+    </div>
+    <div class="scroll-area">
+      <div class="section-label" id="b-route-label"></div>
+      <div class="route-wrapper">
+        <div class="route-selector">
+          <div class="route-from">
+            <div class="route-dot-sm"></div>
+            <div>
+              <div style="font-size:11px;color:var(--muted)" id="b-from-label"></div>
+              <div style="font-size:14px;font-weight:600" id="b-from-val">City H Central</div>
+            </div>
+          </div>
+          <div class="route-to">
+            <div class="route-dot-sm end"></div>
+            <div>
+              <div style="font-size:11px;color:var(--muted)" id="b-to-label"></div>
+              <div style="font-size:14px;font-weight:600" id="b-to-val">Hub J Terminus</div>
+            </div>
+          </div>
+        </div>
+        <div class="route-swap" style="top:50%;transform:translateY(-50%)">⇅</div>
+      </div>
+      <div class="time-row">
+        <div class="input-group">
+          <div class="input-label" id="b-date-label"></div>
+          <input class="input-field" type="date" id="b-date-input" style="color-scheme:dark">
+        </div>
+        <div class="input-group">
+          <div class="input-label" id="b-time-label"></div>
+          <input class="input-field" type="time" id="b-time-input" value="10:00" style="color-scheme:dark">
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label" id="b-pass-label"></div>
+        <div style="display:flex;gap:8px">
+          <button onclick="changePass(-1)" style="background:var(--card);border:1px solid var(--border);color:var(--white);width:40px;height:42px;border-radius:10px;font-size:18px;cursor:pointer">−</button>
+          <input class="input-field" id="b-pass-val" value="1" readonly style="text-align:center;flex:1">
+          <button onclick="changePass(1)" style="background:var(--card);border:1px solid var(--border);color:var(--white);width:40px;height:42px;border-radius:10px;font-size:18px;cursor:pointer">+</button>
+        </div>
+      </div>
+      <div class="cultural-card fade-up">
+        <div class="cultural-title" id="b-cult-title"></div>
+        <div id="cult-items"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="background:var(--card);border-radius:12px;padding:10px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:16px;font-weight:700;color:var(--teal)" id="b-dur"></div>
+          <div style="font-size:10px;color:var(--muted)" id="b-dur-label"></div>
+        </div>
+        <div style="background:var(--card);border-radius:12px;padding:10px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:16px;font-weight:700;color:var(--green)">₦ 42</div>
+          <div style="font-size:10px;color:var(--muted)" id="b-price-label"></div>
+        </div>
+        <div style="background:var(--card);border-radius:12px;padding:10px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:16px;font-weight:700;color:var(--amber)">A+</div>
+          <div style="font-size:10px;color:var(--muted)" id="b-eco-label"></div>
+        </div>
+      </div>
+      <button class="book-btn" id="book-confirm-btn" onclick="showBookingConfirm()"><span id="b-btn-text"></span></button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 3 — AI Assistant
+  ═══════════════════════════════════════════ -->
+  <div class="screen" id="ai-screen">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><div class="sig-dot"></div><div class="sig-dot"></div><div class="sig-dot"></div></div></div>
+    <div class="top-bar">
+      <div class="back-btn" onclick="goHome()">‹ <span id="ai-back"></span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="ai-dot"></div>
+        <span style="font-size:13px;color:var(--teal)" id="ai-status"></span>
+      </div>
+    </div>
+    <div style="padding:0 20px 10px;flex-shrink:0">
+      <div style="font-size:18px;font-weight:700" id="ai-title"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="ai-sub"></div>
+    </div>
+    <div class="quick-qs" id="quick-qs"></div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" onkeydown="handleChatKey(event)" placeholder="" id="chat-ph">
+      <button class="send-btn" onclick="sendChat()">➤</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 4 — Community Rides
+  ═══════════════════════════════════════════ -->
+  <div class="screen" id="community-screen">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><div class="sig-dot"></div><div class="sig-dot"></div><div class="sig-dot"></div></div></div>
+    <div class="top-bar">
+      <div class="back-btn" onclick="goHome()">‹ <span id="c-back"></span></div>
+    </div>
+    <div style="padding:0 24px 10px;flex-shrink:0">
+      <div style="font-size:20px;font-weight:700" id="c-title"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px" id="c-sub"></div>
+    </div>
+    <div class="scroll-area" id="community-list"></div>
+    <div class="bottom-nav" id="comm-nav"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 5 — Profile / SOS
+  ═══════════════════════════════════════════ -->
+  <div class="screen" id="profile-screen">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><div class="sig-dot"></div><div class="sig-dot"></div><div class="sig-dot"></div></div></div>
+    <div class="top-bar">
+      <div class="back-btn" onclick="goHome()">‹ <span id="p-back"></span></div>
+      <div class="lang-switch" onclick="goLangSelect()"><span id="p-flag"></span> <span id="p-lang-name"></span></div>
+    </div>
+    <div class="scroll-area">
+      <div style="text-align:center;padding:12px 0 20px">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--green));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#060b16">A</div>
+        <div style="font-size:18px;font-weight:700" id="p-user"></div>
+        <div style="font-size:12px;color:var(--muted)" id="p-loc"></div>
+      </div>
+      <button class="sos-btn fade-up" id="sos-btn" onclick="triggerSOS()">
+        <span>🆘</span><span id="p-sos-text"></span>
+      </button>
+      <div style="height:16px"></div>
+      <div class="profile-section">
+        <div class="section-label" id="p-pref-label"></div>
+        <div class="profile-row"><span id="p-lang-row"></span><span id="p-lang-val"></span></div>
+        <div class="profile-row" id="p-notif-row"><span id="p-notif-text"></span><div class="toggle" id="notif-toggle" onclick="toggleNotif()"></div></div>
+        <div class="profile-row"><span id="p-access-text"></span><span style="color:var(--teal)">›</span></div>
+      </div>
+      <div class="profile-section">
+        <div class="section-label" id="p-cult-label"></div>
+        <div class="profile-row"><span id="p-prayer-text"></span><span id="p-prayer-val"></span></div>
+        <div class="profile-row"><span id="p-calendar-text"></span><span id="p-calendar-val"></span></div>
+      </div>
+      <div style="height:80px"></div>
+    </div>
+    <div class="bottom-nav" id="prof-nav"></div>
+  </div>
+
+  <!-- ═══ Booking modal ═══ -->
+  <div class="modal-overlay" id="booking-modal" onclick="closeModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px" id="m-title"></div>
+      <div class="confirm-route">
+        <div class="confirm-stop"><div class="confirm-stop-label" id="m-from-lbl"></div><div class="confirm-stop-name">City H Central</div></div>
+        <div class="confirm-arrow">→</div>
+        <div class="confirm-stop" style="text-align:right"><div class="confirm-stop-label" id="m-to-lbl"></div><div class="confirm-stop-name">Hub J</div></div>
+      </div>
+      <div class="confirm-details">
+        <div class="confirm-detail"><div class="val">22 min</div><div class="key" id="m-dur-key"></div></div>
+        <div class="confirm-detail"><div class="val">₦ 42</div><div class="key" id="m-price-key"></div></div>
+        <div class="confirm-detail"><div class="val" id="m-platform">P4</div><div class="key" id="m-plat-key"></div></div>
+      </div>
+      <button class="book-btn" onclick="confirmBooking()"><span id="m-btn"></span></button>
+    </div>
+  </div>
+
+  <!-- ═══ Toast ═══ -->
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toast-title"></div>
+    <div class="toast-text" id="toast-text"></div>
+  </div>
+
+</div><!-- /phone -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════════════
+const T = {
+  en: {
+    dir:'ltr', flag:'🇬🇧', code:'EN', name:'English',
+    greetingMorning:'Good morning,', greetingAfternoon:'Good afternoon,', greetingEvening:'Good evening,',
+    userName:'Kiran Brahma',
+    timeMorning:'MORNING IN CITY H', timeAfternoon:'AFTERNOON IN CITY H', timeEvening:'EVENING IN CITY H',
+    greetingText:'Where are you\nheaded today?', greetingSub:'3 hyperloops available via Hub C route',
+    alertTitle:'⚠ HUB A DISRUPTION ACTIVE',
+    alertText:'Hub A hyperloop & maglev suspended indefinitely. Alternative routes via Hub C are active.',
+    quickLabel:'QUICK ACTIONS',
+    qaBook:'Book Hyperloop', qaBookSub:'Next pod in 8 min',
+    qaAi:'AI Assistant', qaAiSub:'Ask anything',
+    qaComm:'Shared Rides', qaCommSub:'4 nearby',
+    qaSos:'Emergency SOS', qasosSub:'Crisis support',
+    routesLabel:'AVAILABLE ROUTES',
+    routes:[
+      {from:'City H Central',to:'Hub J Terminus',time:'08 min',seats:'12 seats',price:'₦ 42',status:'On time'},
+      {from:'City H East',to:'Hub C Junction',time:'15 min',seats:'6 seats',price:'₦ 28',status:'2 min delay'},
+      {from:'City H West',to:'City E Metro',time:'22 min',seats:'24 seats',price:'₦ 35',status:'On time'},
+    ],
+    back:'Back', bookTitle:'Plan Your Journey',
+    routeLabel:'SELECT ROUTE', fromLabel:'From', toLabel:'To',
+    dateLabel:'DATE', timeLabel:'TIME', passLabel:'PASSENGERS',
+    cultTitle:'🌙 Cultural Context — Smart Timing',
+    cultItems:[
+      ['Asr Prayer Window','3:45 PM – 4:30 PM'],
+      ['Eid Community Gathering','Hub J Plaza, 6 PM'],
+      ['Recommended Departure','Before 3:30 PM'],
+    ],
+    durLabel:'Journey', priceLabel:'Fare', ecoLabel:'Eco Rating',
+    btnText:'Confirm & Book →',
+    aiBack:'Home', aiTitle:'NebuRide AI Assistant',
+    aiSub:'Multilingual support · Available 24/7',
+    aiStatus:'Online in English',
+    aiWelcome:"Hello! I'm your NebuRide assistant. I can help you plan trips, check routes, get emergency guidance, or answer questions about Nebulon's transport network.",
+    aiWelcome2:'Due to the Hub A disruption, I\'m showing alternative routes. How can I help you today?',
+    quickQs:['Alternative routes?','Hub A status?','Prayer time alerts','Emergency contacts'],
+    chatPh:'Type your message...',
+    aiReplies:{
+      'Alternative routes?':'The best current alternative to Hub A is via Hub C. Journey from City H → Hub J takes 22 minutes with 3 connections daily. I recommend booking before 3:30 PM.',
+      'Hub A status?':'Hub A hyperloop and maglev services remain suspended following the volcanic eruption. Drone taxi corridors are active. No restart date has been confirmed.',
+      'Prayer time alerts':'I can send you prayer time notifications. Today\'s Asr is 3:45 PM. I\'ll alert you 30 minutes before so you can plan your journey accordingly.',
+      'Emergency contacts':'Emergency SOS: 900 · Hub Authority Helpline: 112 · Deloitte Crisis Team: +000-NEBU-911 · All operators speak English, Hindi, and Arabic.'
+    },
+    commBack:'Home', commTitle:'Community Rides',
+    commSub:'Share your journey with neighbours',
+    rides:[
+      {route:'City H → Hub J',time:'10:30 AM',seats:'3/4',lang:'Hindi, English',organiser:'Ravi K.',full:false},
+      {route:'City H East → Hub C',time:'11:00 AM',seats:'2/4',lang:'Arabic',organiser:'Fatima A.',full:false},
+      {route:'City H → City E',time:'12:15 PM',seats:'4/4',lang:'English',organiser:'Sarah M.',full:true},
+      {route:'City H West → Hub J',time:'2:00 PM',seats:'1/4',lang:'Hindi',organiser:'Priya S.',full:false},
+    ],
+    rideOpen:'Spaces available', rideFull:'Full',
+    pBack:'Home', pUser:'Kiran Brahma', pLoc:'City H, Nebulon',
+    pSosText:'EMERGENCY SOS — TAP TO ACTIVATE',
+    pPrefLabel:'PREFERENCES',
+    pLangRow:'Language', pLangVal:'English',
+    pNotifText:'Journey Notifications', pAccessText:'Accessibility Mode',
+    pCultLabel:'CULTURAL SETTINGS',
+    pPrayerText:'Prayer Time Alerts', pPrayerVal:'Active',
+    pCalendarText:'Cultural Calendar', pCalendarVal:'Islamic 1547',
+    mTitle:'Confirm Your Booking',
+    mFromLbl:'From', mToLbl:'To',
+    mDurKey:'Duration', mPriceKey:'Total Fare', mPlatKey:'Platform',
+    mBtn:'Confirm Booking ✓',
+    toastTitle:'🎉 Booking Confirmed!',
+    toastText:'Platform 4 · Departing in 8 minutes · Have a safe journey!',
+    sosTitle:'SOS Activated',
+    sosText:'Emergency services notified. Help is on the way.',
+    dur:'22 min',
+  },
+  hi: {
+    dir:'ltr', flag:'🇮🇳', code:'HI', name:'हिंदी',
+    greetingMorning:'शुभ प्रभात,', greetingAfternoon:'नमस्ते,', greetingEvening:'शुभ संध्या,',
+    userName:'अर्जुन शर्मा',
+    timeMorning:'सिटी H में सुबह', timeAfternoon:'सिटी H में दोपहर', timeEvening:'सिटी H में शाम',
+    greetingText:'आज आप कहाँ\nजाना चाहते हैं?', greetingSub:'Hub C मार्ग से 3 हाइपरलूप उपलब्ध',
+    alertTitle:'⚠ Hub A सेवा बाधित',
+    alertText:'Hub A हाइपरलूप और मैग्लेव अनिश्चितकाल के लिए बंद। Hub C से वैकल्पिक मार्ग सक्रिय।',
+    quickLabel:'त्वरित क्रियाएं',
+    qaBook:'हाइपरलूप बुक करें', qaBookSub:'अगली पॉड 8 मिनट में',
+    qaAi:'AI सहायक', qaAiSub:'कुछ भी पूछें',
+    qaComm:'साझा यात्रा', qaCommSub:'4 पास में',
+    qaSos:'आपातकालीन SOS', qasosSub:'संकट सहायता',
+    routesLabel:'उपलब्ध मार्ग',
+    routes:[
+      {from:'सिटी H केंद्र',to:'Hub J टर्मिनस',time:'08 मिनट',seats:'12 सीटें',price:'₦ 42',status:'समय पर'},
+      {from:'सिटी H पूर्व',to:'Hub C जंक्शन',time:'15 मिनट',seats:'6 सीटें',price:'₦ 28',status:'2 मिनट देरी'},
+      {from:'सिटी H पश्चिम',to:'सिटी E मेट्रो',time:'22 मिनट',seats:'24 सीटें',price:'₦ 35',status:'समय पर'},
+    ],
+    back:'वापस', bookTitle:'यात्रा योजना बनाएं',
+    routeLabel:'मार्ग चुनें', fromLabel:'यहाँ से', toLabel:'यहाँ तक',
+    dateLabel:'तारीख', timeLabel:'समय', passLabel:'यात्री',
+    cultTitle:'🌙 सांस्कृतिक संदर्भ — स्मार्ट टाइमिंग',
+    cultItems:[
+      ['असर नमाज़','3:45 PM – 4:30 PM'],
+      ['ईद सामुदायिक सभा','Hub J प्लाज़ा, शाम 6 बजे'],
+      ['अनुशंसित प्रस्थान','3:30 PM से पहले'],
+    ],
+    durLabel:'यात्रा', priceLabel:'किराया', ecoLabel:'इको रेटिंग',
+    btnText:'पुष्टि करें और बुक करें →',
+    aiBack:'होम', aiTitle:'NebuRide AI सहायक',
+    aiSub:'बहुभाषी सहायता · 24/7 उपलब्ध',
+    aiStatus:'हिंदी में ऑनलाइन',
+    aiWelcome:'नमस्ते! मैं आपका NebuRide सहायक हूं। मैं यात्रा योजना, मार्ग जानकारी, आपातकालीन मार्गदर्शन या नेबुलॉन के परिवहन नेटवर्क के बारे में सवालों में मदद कर सकता हूं।',
+    aiWelcome2:'Hub A व्यवधान के कारण, मैं वैकल्पिक मार्ग दिखा रहा हूं। आज मैं आपकी कैसे मदद कर सकता हूं?',
+    quickQs:['वैकल्पिक मार्ग?','Hub A स्थिति?','नमाज़ समय अलर्ट','आपातकालीन संपर्क'],
+    chatPh:'अपना संदेश लिखें...',
+    aiReplies:{
+      'वैकल्पिक मार्ग?':'Hub A का सबसे अच्छा विकल्प Hub C के रास्ते है। City H → Hub J की यात्रा 22 मिनट में होती है। मैं 3:30 PM से पहले बुकिंग करने की सलाह देता हूं।',
+      'Hub A स्थिति?':'ज्वालामुखी विस्फोट के बाद Hub A की हाइपरलूप और मैग्लेव सेवाएं निलंबित हैं। ड्रोन टैक्सी कॉरिडोर सक्रिय हैं। पुनः आरंभ की कोई तारीख तय नहीं है।',
+      'नमाज़ समय अलर्ट':'मैं आपको नमाज़ के समय की सूचना भेज सकता हूं। आज असर 3:45 PM है। मैं 30 मिनट पहले अलर्ट करूंगा।',
+      'आपातकालीन संपर्क':'आपातकाल SOS: 900 · Hub प्राधिकरण: 112 · डेलॉइट संकट टीम: +000-NEBU-911'
+    },
+    commBack:'होम', commTitle:'सामुदायिक यात्रा',
+    commSub:'पड़ोसियों के साथ यात्रा साझा करें',
+    rides:[
+      {route:'सिटी H → Hub J',time:'10:30 AM',seats:'3/4',lang:'हिंदी, अंग्रेजी',organiser:'रवि K.',full:false},
+      {route:'सिटी H पूर्व → Hub C',time:'11:00 AM',seats:'2/4',lang:'अरबी',organiser:'फातिमा A.',full:false},
+      {route:'सिटी H → सिटी E',time:'12:15 PM',seats:'4/4',lang:'अंग्रेजी',organiser:'सारा M.',full:true},
+      {route:'सिटी H पश्चिम → Hub J',time:'2:00 PM',seats:'1/4',lang:'हिंदी',organiser:'प्रिया S.',full:false},
+    ],
+    rideOpen:'सीटें उपलब्ध', rideFull:'भरा हुआ',
+    pBack:'होम', pUser:'अर्जुन शर्मा', pLoc:'सिटी H, नेबुलॉन',
+    pSosText:'आपातकालीन SOS — दबाने के लिए टैप करें',
+    pPrefLabel:'प्राथमिकताएं',
+    pLangRow:'भाषा', pLangVal:'हिंदी',
+    pNotifText:'यात्रा सूचनाएं', pAccessText:'अभिगम्यता मोड',
+    pCultLabel:'सांस्कृतिक सेटिंग्स',
+    pPrayerText:'नमाज़ समय अलर्ट', pPrayerVal:'सक्रिय',
+    pCalendarText:'सांस्कृतिक कैलेंडर', pCalendarVal:'इस्लामी 1547',
+    mTitle:'बुकिंग की पुष्टि करें',
+    mFromLbl:'यहाँ से', mToLbl:'यहाँ तक',
+    mDurKey:'अवधि', mPriceKey:'कुल किराया', mPlatKey:'प्लेटफॉर्म',
+    mBtn:'बुकिंग की पुष्टि करें ✓',
+    toastTitle:'🎉 बुकिंग पुष्टि हुई!',
+    toastText:'प्लेटफॉर्म 4 · 8 मिनट में रवाना · सुरक्षित यात्रा!',
+    sosTitle:'SOS सक्रिय',
+    sosText:'आपातकालीन सेवाओं को सूचित किया। मदद रास्ते में है।',
+    dur:'22 मिनट',
+  },
+  ar: {
+    dir:'rtl', flag:'🇸🇦', code:'AR', name:'العربية',
+    greetingMorning:'صباح الخير،', greetingAfternoon:'مساء الخير،', greetingEvening:'مساء النور،',
+    userName:'أحمد الحربي',
+    timeMorning:'صباح المدينة H', timeAfternoon:'ظهيرة المدينة H', timeEvening:'مساء المدينة H',
+    greetingText:'إلى أين ستذهب\nاليوم؟', greetingSub:'3 حلقات فائقة متاحة عبر مسار Hub C',
+    alertTitle:'⚠ تعطل Hub A مستمر',
+    alertText:'تم تعليق خدمات الحلقة الفائقة والقطار المغناطيسي في Hub A. مسارات بديلة عبر Hub C نشطة.',
+    quickLabel:'إجراءات سريعة',
+    qaBook:'احجز الحلقة الفائقة', qaBookSub:'الكبسولة القادمة خلال 8 دقائق',
+    qaAi:'المساعد الذكي', qaAiSub:'اسأل أي شيء',
+    qaComm:'رحلات مشتركة', qaCommSub:'4 قريبين',
+    qaSos:'طوارئ SOS', qasosSub:'دعم الأزمات',
+    routesLabel:'المسارات المتاحة',
+    routes:[
+      {from:'مركز المدينة H',to:'محطة Hub J',time:'٨ دقائق',seats:'١٢ مقعداً',price:'₦ 42',status:'في الموعد'},
+      {from:'شرق المدينة H',to:'تقاطع Hub C',time:'١٥ دقيقة',seats:'٦ مقاعد',price:'₦ 28',status:'تأخير دقيقتين'},
+      {from:'غرب المدينة H',to:'مترو المدينة E',time:'٢٢ دقيقة',seats:'٢٤ مقعداً',price:'₦ 35',status:'في الموعد'},
+    ],
+    back:'رجوع', bookTitle:'خطط رحلتك',
+    routeLabel:'اختر المسار', fromLabel:'من', toLabel:'إلى',
+    dateLabel:'التاريخ', timeLabel:'الوقت', passLabel:'المسافرون',
+    cultTitle:'🌙 السياق الثقافي — توقيت ذكي',
+    cultItems:[
+      ['نافذة صلاة العصر','3:45 م – 4:30 م'],
+      ['تجمع عيد المجتمع','ساحة Hub J، 6 م'],
+      ['المغادرة الموصى بها','قبل 3:30 م'],
+    ],
+    durLabel:'المدة', priceLabel:'الأجرة', ecoLabel:'تقييم البيئة',
+    btnText:'تأكيد والحجز ←',
+    aiBack:'الرئيسية', aiTitle:'مساعد NebuRide الذكي',
+    aiSub:'دعم متعدد اللغات · متاح 24/7',
+    aiStatus:'متصل بالعربية',
+    aiWelcome:'مرحباً! أنا مساعد NebuRide. يمكنني مساعدتك في التخطيط للرحلات والتحقق من المسارات والحصول على إرشادات الطوارئ.',
+    aiWelcome2:'بسبب اضطراب Hub A، أعرض المسارات البديلة. كيف يمكنني مساعدتك اليوم؟',
+    quickQs:['مسارات بديلة؟','حالة Hub A؟','تنبيهات أوقات الصلاة','جهات الطوارئ'],
+    chatPh:'اكتب رسالتك...',
+    aiReplies:{
+      'مسارات بديلة؟':'أفضل بديل حالي لـ Hub A هو عبر Hub C. رحلة من المدينة H إلى Hub J تستغرق 22 دقيقة. أنصح بالحجز قبل 3:30 م.',
+      'حالة Hub A؟':'لا تزال خدمات الحلقة الفائقة والقطار المغناطيسي في Hub A معلقة إثر الثوران البركاني. ممرات سيارة الأجرة بالطائرة نشطة.',
+      'تنبيهات أوقات الصلاة':'يمكنني إرسال تنبيهات أوقات الصلاة. صلاة العصر اليوم 3:45 م. سأنبهك قبل 30 دقيقة.',
+      'جهات الطوارئ':'طوارئ SOS: 900 · سلطة Hub: 112 · فريق أزمات ديلويت: +000-NEBU-911 · جميع المشغلين يتحدثون العربية.'
+    },
+    commBack:'الرئيسية', commTitle:'الرحلات المجتمعية',
+    commSub:'شارك رحلتك مع الجيران',
+    rides:[
+      {route:'المدينة H ← Hub J',time:'10:30 ص',seats:'3/4',lang:'هندي، عربي',organiser:'رافي ك.',full:false},
+      {route:'شرق H ← Hub C',time:'11:00 ص',seats:'2/4',lang:'عربي',organiser:'فاطمة أ.',full:false},
+      {route:'المدينة H ← المدينة E',time:'12:15 م',seats:'4/4',lang:'إنجليزي',organiser:'سارة م.',full:true},
+      {route:'غرب H ← Hub J',time:'2:00 م',seats:'1/4',lang:'هندي',organiser:'بريا س.',full:false},
+    ],
+    rideOpen:'مقاعد متاحة', rideFull:'مكتمل',
+    pBack:'الرئيسية', pUser:'أحمد الحربي', pLoc:'المدينة H، نيبولون',
+    pSosText:'طوارئ SOS — انقر للتفعيل',
+    pPrefLabel:'التفضيلات',
+    pLangRow:'اللغة', pLangVal:'العربية',
+    pNotifText:'تنبيهات الرحلة', pAccessText:'وضع إمكانية الوصول',
+    pCultLabel:'الإعدادات الثقافية',
+    pPrayerText:'تنبيهات أوقات الصلاة', pPrayerVal:'نشط',
+    pCalendarText:'التقويم الثقافي', pCalendarVal:'هجري 1547',
+    mTitle:'تأكيد الحجز',
+    mFromLbl:'من', mToLbl:'إلى',
+    mDurKey:'المدة', mPriceKey:'الأجرة الإجمالية', mPlatKey:'المنصة',
+    mBtn:'تأكيد الحجز ✓',
+    toastTitle:'🎉 تم تأكيد الحجز!',
+    toastText:'المنصة 4 · المغادرة خلال 8 دقائق · رحلة آمنة!',
+    sosTitle:'تم تفعيل SOS',
+    sosText:'تم إخطار خدمات الطوارئ. المساعدة في الطريق.',
+    dur:'٢٢ دقيقة',
+  }
+};
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let lang = 'en';
+let passengers = 1;
+let notifOn = true;
+let chatHistory = [];
+
+// ══════════════════════════════════════════════
+//  STARS
+// ══════════════════════════════════════════════
+(function(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    const size = Math.random()*2+1;
+    Object.assign(s.style,{
+      left:Math.random()*100+'%',top:Math.random()*100+'%',
+      width:size+'px',height:size+'px',
+      '--d':(2+Math.random()*4)+'s',
+      '--delay':(Math.random()*5)+'s',
+      '--op':(0.4+Math.random()*0.6)
+    });
+    c.appendChild(s);
+  }
+})();
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id!=='lang-screen') renderNav(id);
+}
+function goHome(){goScreen('home-screen')}
+function goLangSelect(){goScreen('lang-screen')}
+
+function renderNav(activeScreen){
+  const t = T[lang];
+  const navData = [
+    {icon:'🏠', label:'Home', screen:'home-screen'},
+    {icon:'🚄', label:lang==='en'?'Book':lang==='hi'?'बुक करें':'احجز', screen:'book-screen'},
+    {icon:'🤖', label:'AI', screen:'ai-screen'},
+    {icon:'👥', label:lang==='en'?'Rides':lang==='hi'?'यात्रा':'رحلات', screen:'community-screen'},
+    {icon:'👤', label:lang==='en'?'Profile':lang==='hi'?'प्रोफ़ाइल':'الملف', screen:'profile-screen'},
+  ];
+  ['home-nav','comm-nav','prof-nav'].forEach(navId=>{
+    const el = document.getElementById(navId);
+    if(!el) return;
+    el.innerHTML = navData.map(n=>`
+      <div class="nav-item${activeScreen===n.screen?' active':''}" onclick="goScreen('${n.screen}')">
+        <span class="nav-icon">${n.icon}</span>
+        <span class="nav-label">${n.label}</span>
+      </div>`).join('');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  LANGUAGE
+// ══════════════════════════════════════════════
+function setLang(l){
+  lang=l;
+  const t=T[l];
+  document.getElementById('phone').setAttribute('dir',t.dir);
+  if(l==='hi') document.getElementById('phone').style.fontFamily="'Noto Sans Devanagari','Exo 2',sans-serif";
+  else if(l==='ar') document.getElementById('phone').style.fontFamily="'Noto Sans Arabic','Exo 2',sans-serif";
+  else document.getElementById('phone').style.fontFamily="'Exo 2',sans-serif";
+  populateHome();
+  populateBook();
+  populateAI();
+  populateCommunity();
+  populateProfile();
+  goScreen('home-screen');
+}
+
+// ══════════════════════════════════════════════
+//  POPULATE SCREENS
+// ══════════════════════════════════════════════
+function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+function setHTML(id, val){ const el=document.getElementById(id); if(el) el.innerHTML=val; }
+
+function populateHome(){
+  const t=T[lang];
+  const hr=new Date().getHours();
+  const g=hr<12?t.greetingMorning:hr<17?t.greetingAfternoon:t.greetingEvening;
+  const tl=hr<12?t.timeMorning:hr<17?t.timeAfternoon:t.timeEvening;
+  setText('h-greeting-time',tl);
+  setText('h-user-name', g+' '+t.userName.split(' ')[0]);
+  setText('h-flag',t.flag); setText('h-lang-code',t.code);
+  setText('h-alert-title',t.alertTitle); setText('h-alert-text',t.alertText);
+  setText('h-time-label',tl);
+  setHTML('h-greeting',t.greetingText.replace('\n','<br>'));
+  setText('h-sub',t.greetingSub);
+  setText('h-quick-label',t.quickLabel);
+  setText('qa-book',t.qaBook); setText('qa-book-sub',t.qaBookSub);
+  setText('qa-ai',t.qaAi); setText('qa-ai-sub',t.qaAiSub);
+  setText('qa-comm',t.qaComm); setText('qa-comm-sub',t.qaComm);
+  setText('qa-sos',t.qaSos);
+  setText('h-routes-label',t.routesLabel);
+  const rc=document.getElementById('route-cards');
+  rc.innerHTML=t.routes.map(r=>`
+    <div class="journey-card" onclick="goScreen('book-screen')">
+      <div class="journey-route">
+        <div class="route-dot"></div>
+        <div class="route-line"></div>
+        <div class="route-dot end"></div>
+      </div>
+      <div class="route-names"><span>${r.from}</span><span>${r.to}</span></div>
+      <div class="journey-meta">
+        <span class="meta-pill">⏱ ${r.time}</span>
+        <span class="meta-pill green">💺 ${r.seats}</span>
+        <span class="meta-pill">${r.price}</span>
+        <span class="meta-pill ${r.status.includes('delay')||r.status.includes('देरी')||r.status.includes('تأخير')?'amber':'green'}">${r.status}</span>
+      </div>
+    </div>`).join('');
+  renderNav('home-screen');
+}
+
+function populateBook(){
+  const t=T[lang];
+  setText('b-back',t.back); setText('b-title',t.bookTitle);
+  setText('b-route-label',t.routeLabel);
+  setText('b-from-label',t.fromLabel); setText('b-to-label',t.toLabel);
+  if(lang==='ar'){setText('b-from-val','مركز المدينة H');setText('b-to-val','محطة Hub J');}
+  else if(lang==='hi'){setText('b-from-val','सिटी H केंद्र');setText('b-to-val','Hub J टर्मिनस');}
+  else{setText('b-from-val','City H Central');setText('b-to-val','Hub J Terminus');}
+  setText('b-date-label',t.dateLabel); setText('b-time-label',t.timeLabel);
+  setText('b-pass-label',t.passLabel);
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('b-date-input').value=today;
+  setText('b-cult-title',t.cultTitle);
+  document.getElementById('cult-items').innerHTML=t.cultItems.map(([k,v])=>`
+    <div class="cultural-item"><span>${k}</span><span>${v}</span></div>`).join('');
+  setText('b-dur',t.dur); setText('b-dur-label',t.durLabel);
+  setText('b-price-label',t.priceLabel); setText('b-eco-label',t.ecoLabel);
+  setText('b-btn-text',t.btnText);
+  setText('m-title',t.mTitle); setText('m-from-lbl',t.mFromLbl); setText('m-to-lbl',t.mToLbl);
+  setText('m-dur-key',t.mDurKey); setText('m-price-key',t.mPriceKey); setText('m-plat-key',t.mPlatKey);
+  setText('m-btn',t.mBtn);
+}
+
+function populateAI(){
+  const t=T[lang];
+  setText('ai-back',t.aiBack); setText('ai-title',t.aiTitle);
+  setText('ai-sub',t.aiSub); setText('ai-status',t.aiStatus);
+  document.getElementById('chat-input').placeholder=t.chatPh;
+  chatHistory=[];
+  const msgs=document.getElementById('chat-messages');
+  msgs.innerHTML='';
+  addBotMsg(t.aiWelcome);
+  setTimeout(()=>addBotMsg(t.aiWelcome2),600);
+  const qq=document.getElementById('quick-qs');
+  qq.innerHTML=t.quickQs.map(q=>`<div class="quick-q" onclick="sendQuickQ('${q}')">${q}</div>`).join('');
+}
+
+function populateCommunity(){
+  const t=T[lang];
+  setText('c-back',t.commBack); setText('c-title',t.commTitle); setText('c-sub',t.commSub);
+  const cl=document.getElementById('community-list');
+  cl.innerHTML=`<div style="padding:4px 0 10px">
+    <div style="background:linear-gradient(135deg,rgba(125,196,26,0.1),rgba(0,212,200,0.05));border:1px solid rgba(125,196,26,0.25);border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:4px">🤝 ${lang==='en'?'Community First':lang==='hi'?'समुदाय पहले':'المجتمع أولاً'}</div>
+      <div style="font-size:12px;color:var(--muted)">${lang==='en'?'Share rides with neighbours from your community. All bookings are language-matched.':lang==='hi'?'अपने समुदाय के पड़ोसियों के साथ यात्रा साझा करें। सभी बुकिंग भाषा-मिलान हैं।':'شارك الرحلات مع جيرانك. جميع الحجوزات تتطابق مع اللغة.'}</div>
+    </div>
+    ${t.rides.map(r=>`
+    <div class="ride-card">
+      <div class="ride-header">
+        <div class="ride-route">${r.route}</div>
+        <div class="ride-badge${r.full?' full':''}">${r.full?t.rideFull:t.rideOpen}</div>
+      </div>
+      <div class="ride-meta">
+        <span class="ride-tag">🕐 ${r.time}</span>
+        <span class="ride-tag">💺 ${r.seats}</span>
+        <span class="ride-tag">🗣 ${r.lang}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="avatars"><div class="av">${r.organiser[0]}</div><div class="av" style="background:linear-gradient(135deg,#e08040,#c06020)">+</div></div>
+          <span style="font-size:12px;color:var(--muted)">${r.organiser}</span>
+        </div>
+        ${!r.full?`<button style="background:rgba(0,212,200,0.1);border:1px solid rgba(0,212,200,0.3);color:var(--teal);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit">${lang==='en'?'Join':lang==='hi'?'जुड़ें':'انضم'}</button>`:''}
+      </div>
+    </div>`).join('')}
+  </div>`;
+  renderNav('community-screen');
+}
+
+function populateProfile(){
+  const t=T[lang];
+  setText('p-back',t.pBack); setText('p-user',t.pUser); setText('p-loc',t.pLoc);
+  setText('p-sos-text',t.pSosText);
+  setText('p-flag',t.flag); setText('p-lang-name',t.name);
+  setText('p-pref-label',t.pPrefLabel);
+  setText('p-lang-row',t.pLangRow); setText('p-lang-val',t.pLangVal);
+  setText('p-notif-text',t.pNotifText); setText('p-access-text',t.pAccessText);
+  setText('p-cult-label',t.pCultLabel);
+  setText('p-prayer-text',t.pPrayerText); setText('p-prayer-val',t.pPrayerVal);
+  setText('p-calendar-text',t.pCalendarText); setText('p-calendar-val',t.pCalendarVal);
+  renderNav('profile-screen');
+}
+
+// ══════════════════════════════════════════════
+//  AI CHAT
+// ══════════════════════════════════════════════
+function addBotMsg(text){
+  const t=T[lang];
+  const msgs=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  div.className='msg bot fade-up';
+  div.innerHTML=`<div class="ai-badge"><div class="ai-dot"></div>${lang==='en'?'NebuRide AI':lang==='hi'?'NebuRide AI':'NebuRide AI'}</div>
+    <div class="bubble">${text}</div>
+    <div class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function addUserMsg(text){
+  const msgs=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  div.className='msg user fade-up';
+  div.innerHTML=`<div class="bubble">${text}</div>
+    <div class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function sendQuickQ(q){
+  addUserMsg(q);
+  const t=T[lang];
+  setTimeout(()=>{
+    const reply=t.aiReplies[q]||t.aiReplies[Object.keys(t.aiReplies)[0]];
+    addBotMsg(reply);
+    document.getElementById('quick-qs').innerHTML='';
+  },500);
+}
+function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const v=inp.value.trim();
+  if(!v) return;
+  addUserMsg(v);
+  inp.value='';
+  const t=T[lang];
+  setTimeout(()=>{
+    const fallback=lang==='en'?'I understand. Let me help you navigate Nebulon\'s transport network. Would you like to book a trip or check alternative routes?':
+      lang==='hi'?'मैं समझता हूं। क्या आप यात्रा बुक करना चाहते हैं या वैकल्पिक मार्ग देखना चाहते हैं?':
+      'أفهم. هل تريد حجز رحلة أو التحقق من المسارات البديلة؟';
+    addBotMsg(t.aiReplies[v]||fallback);
+  },600);
+}
+function handleChatKey(e){if(e.key==='Enter')sendChat();}
+
+// ══════════════════════════════════════════════
+//  BOOKING
+// ══════════════════════════════════════════════
+function changePass(d){
+  passengers=Math.max(1,Math.min(8,passengers+d));
+  document.getElementById('b-pass-val').value=passengers;
+}
+function showBookingConfirm(){
+  document.getElementById('booking-modal').classList.add('show');
+}
+function closeModal(e){
+  if(e.target.id==='booking-modal') document.getElementById('booking-modal').classList.remove('show');
+}
+function confirmBooking(){
+  document.getElementById('booking-modal').classList.remove('show');
+  const t=T[lang];
+  setText('toast-title',t.toastTitle);
+  setText('toast-text',t.toastText);
+  const toast=document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),3500);
+}
+
+// ══════════════════════════════════════════════
+//  SOS & TOGGLES
+// ══════════════════════════════════════════════
+function triggerSOS(){
+  const t=T[lang];
+  setText('toast-title','🆘 '+t.sosTitle);
+  setText('toast-text',t.sosText);
+  const toast=document.getElementById('toast');
+  toast.classList.add('show');
+  document.getElementById('sos-btn').style.background='rgba(232,64,64,0.35)';
+  setTimeout(()=>{toast.classList.remove('show');document.getElementById('sos-btn').style.background='';},4000);
+}
+function toggleNotif(){
+  notifOn=!notifOn;
+  document.getElementById('notif-toggle').classList.toggle('off',!notifOn);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.onload=function(){
+  // pre-populate in English (hidden until lang chosen)
+  lang='en';
+  populateHome(); populateBook(); populateAI(); populateCommunity(); populateProfile();
+};
+</script>
+</body>
+</html>
